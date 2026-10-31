@@ -1,0 +1,30 @@
+services:
+  app:
+    build: .
+    env_file: .env.local
+    environment:
+      MEDIA_PROVIDER: vyla
+      VYLA_BASE_URL: http://vyla:7860
+      LIBRARY_DB: /app/data/library.sqlite3
+    ports:
+      - "127.0.0.1:5173:8000"
+    volumes:
+      - personal-data:/app/data
+    depends_on:
+      - vyla
+    restart: unless-stopped
+  vyla:
+    build: ./services/vyla
+    env_file: .env.local
+    environment:
+      PORT: "7860"
+      BIND_HOST: 0.0.0.0
+      PUBLIC_BASE_URL: http://vyla:7860
+      WORKER_COUNT: "1"
+      ENABLE_DEBUG_ROUTE: "false"
+      PROXY_STREAMS: "true"
+      GA_MEASUREMENT_ID: ""
+      GA_API_SECRET: ""
+    restart: unless-stopped
+volumes:
+  personal-data:

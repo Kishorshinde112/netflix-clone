@@ -1,0 +1,49 @@
+name: Deploy to Hugging Face Space
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure Git auth
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          set -e
+
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions"
+
+          git config --global credential.helper store
+          echo "https://hf:${HF_TOKEN}@huggingface.co" > ~/.git-credentials
+
+      - name: Clone HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          set -e
+          rm -rf hf-space
+          git clone https://huggingface.co/spaces/MissouriMonster/x hf-space
+
+      - name: Sync files
+        run: |
+          rsync -av --exclude='.git' ./ hf-space/
+
+      - name: Commit changes
+        run: |
+          cd hf-space
+          git add .
+
+          git commit -m "deploy" || echo "no changes"
+
+      - name: Push to Hugging Face
+        run: |
+          cd hf-space
+          git push https://hf:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/MissouriMonster/x main

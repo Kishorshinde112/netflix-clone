@@ -1,0 +1,7 @@
+.wrangler
+.dev.vars
+node_modules/
+.env
+package-lock.json
+data/
+db.json

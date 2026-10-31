@@ -1,0 +1,9 @@
+.git
+node_modules
+dist
+backend/.venv
+**/__pycache__
+**/*.sqlite3
+**/local_history.json
+.env*
+*.zip

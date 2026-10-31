@@ -1,0 +1,46 @@
+# dependencies
+node_modules/
+services/vyla/node_modules/
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production & builds
+/build
+/dist/
+
+# environment and secrets (never commit credentials)
+.env
+.env.local
+.env.*.local
+.env.*
+!.env.example
+!.env.sample
+
+# python virtualenv & caches
+backend/.venv/
+.venv/
+env/
+**/__pycache__/
+**/.pytest_cache/
+*.pyc
+
+# databases
+*.sqlite
+*.sqlite3
+*.db
+library.sqlite3
+**/local_history.json
+
+# misc & logs
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+firebase-debug.log*
+.eslintcache
+.idea
+.vscode

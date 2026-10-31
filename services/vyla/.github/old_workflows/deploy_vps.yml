@@ -1,0 +1,42 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            git config --global --add safe.directory /var/www/stream-api
+
+            cd /var/www/stream-api
+
+            mkdir -p /var/backups/stream-api
+            if [ -f data/api_keys.db ]; then
+              cp data/api_keys.db "/var/backups/stream-api/api_keys-$(date +%Y%m%d%H%M%S).db"
+              ls -t /var/backups/stream-api/api_keys-*.db | tail -n +31 | xargs -r rm --
+            fi
+
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd -e data
+
+            npm install
+
+            mkdir -p data
+
+            pm2 restart stream-api || pm2 start server.js --name stream-api
+
+            pm2 save

@@ -1,0 +1,47 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  image: alpine:latest
+
+  before_script:
+    - apk add --no-cache openssh-client
+
+  script:
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+    - |
+      ssh root@"$VPS_HOST" << 'EOF'
+        set -e
+
+        git config --global --add safe.directory /var/www/stream-api
+
+        cd /var/www/stream-api
+
+        mkdir -p /var/backups/stream-api
+
+        if [ -f data/api_keys.db ]; then
+          cp data/api_keys.db "/var/backups/stream-api/api_keys-$(date +%Y%m%d%H%M%S).db"
+          ls -t /var/backups/stream-api/api_keys-*.db | tail -n +31 | xargs -r rm --
+        fi
+
+        git fetch origin main
+        git reset --hard origin/main
+        git clean -fd -e data
+
+        npm install
+
+        mkdir -p data
+
+        pm2 restart stream-api || pm2 start server.js --name stream-api
+
+        pm2 save
+      EOF
+
+  only:
+    - main
